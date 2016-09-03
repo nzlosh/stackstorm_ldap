@@ -1,0 +1,6 @@
+---
+name: ldap
+description: Interact with LDAP servers
+version: 0.1.0
+author: Carlos
+email: nzlosh@yahoo.com

@@ -1,0 +1,31 @@
+---
+  name: "query"
+  runner_type: "run-python"
+  description: "Query the LDAP server"
+  enabled: true
+  entry_point: "../lib/query.py"
+  parameters:
+    bind_dn_user:
+      type: string
+      description: "Distiguished Name account to bind to LDAP server."
+      required: true
+    bind_dn_password:
+      type: string
+      description: "Password for the Distinguished Name account."
+      required: true
+    search_base:
+      type: string
+      description: "Search base for the directory tree."
+      required: true
+    scope:
+      type: string
+      description: "Limit the scope of the query to 'object', 'one-level', or  'subtree'."
+      required: false
+    filter:
+      type: string
+      description: "LDAP filter to use in the query."
+      required: true
+    attributes:
+      type: array
+      description: "The attributes to be returned in the query result set."
+      required: false
