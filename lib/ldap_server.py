@@ -2,6 +2,7 @@ from st2actions.runners.pythonrunner import Action
 from st2common import log as logging
 
 import ldap
+import ldap.modlist as modlist
 
 LOG = logging.getLogger(__name__)
 
@@ -9,42 +10,14 @@ LOG = logging.getLogger(__name__)
 
 class LDAPServer(object):
     """
-    Backend which reads authentication information from a ldap server.
-
-    Authentication steps:
-        1. bind to ldap using the bind_dn & bind_pw and fetch user attributes.
-        2. rebind using users DN.
-        3. if group_dn is provided (optional)
-            - serch ldap using group_dn.
-        4. all of the above steps are succesful
-            - return successful .
+    This object provides common functionality to authenticate and interact
+    with an LDAP server.
     """
-    def __init__(self, ldap_server, bind_dn, bind_pw, base_dn, group_dn, scope, use_tls, search_filter):
-        """
-        :param ldap_server: URL of the LDAP Server.
-        :type ldap_server: ``str``
-        :param base_dn: Base DN on the LDAP Server.
-        :type base_dn: ``str``
-        :param bind_dn: The Distinguish Name account to bind to the ldap server.
-        :type bind_dn: ``str``
-        :param bind_pw: The Distinguish Name account's password.
-        :type bind_pw: ``str``
-        :param group_dn: Group DN on the LDAP Server which contains the user as member.
-        :type group_dn: ``str``
-        :param scope: Scope search parameter. Can be base, onelevel or subtree (default: subtree)
-        :type scope: ``str``
-        :param use_tls: Boolean parameter to set if tls is required.
-        :type use_tls: ``bool``
-        :param tls_valid_cert: Boolean parameter to set if the server certificate must be valid.
-        :type tls_valid_cert: ``bool``
-        :param search_filter: Should contain the placeholder %(username)s for the username.
-        :type search_filter: ``str``
-        """
-        self._ldap_server = ldap_server
-        self._base_dn = base_dn
-        self._group_dn = group_dn
-        self._bind_dn = bind_dn
-        self._bind_pw = bind_pw
+    def __init__(self, ldap_uri, use_tls, bind_dn, bind_pw, base_dn):
+        self.ldap_uri = ldap_uri
+        self.base_dn = base_dn
+        self.bind_dn = bind_dn
+        self.bind_pw = bind_pw
 
         if "base" in scope:
             self._scope = ldap.SCOPE_BASE
@@ -52,34 +25,38 @@ class LDAPServer(object):
             self._scope = ldap.SCOPE_ONELEVEL
         else:
             self._scope = ldap.SCOPE_SUBTREE
+
         if use_tls != "True" or "ldaps" in ldap_server:
-            self._use_tls = False
-            self._tls_valid_cert = False
+            self.use_tls = False
+            self.tls_valid_cert = False
         else:
-            self._use_tls = True
-        self._search_filter = search_filter
+            self.use_tls = True
 
 
-    def authenticate(self, username, password):
-        if self._search_filter:
-            search_filter = self._search_filter % {'username': username}
-        else:
-            search_filter = 'uniqueMember=uid=' + username + ',' + self._base_dn
-        self._ldap_connect()
 
-
-    def _ldap_connect(self):
+    def connect(self):
         try:
             ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
             connect = ldap.initialize(self._ldap_server)
             connect.set_option(ldap.OPT_PROTOCOL_VERSION, 3)
-            if self._use_tls:
+            if self.use_tls:
                 connect.set_option(ldap.OPT_X_TLS, ldap.OPT_X_TLS_DEMAND)
                 connect.start_tls_s()
                 LOG.debug('using TLS')
-            connect.simple_bind_s("uid=" + username + "," + self._base_dn, password)
+            connect.simple_bind_s(self.bind_dn, self.bind_pw)
+            return connect
+        except ldap.LDAPError as e:
+            LOG.debug('LDAP Error: %s' % (str(e)))
+
+
+    def disconnect(self, connect):
+        connect.unbind()
+
+
+    def search(self, search_filter, scope, attributes):
+        connect = self.connect()
             try:
-                result = connect.search_s(self._group_dn, self._scope, search_filter)
+                result = connect.search_s(, self._scope, search_filter)
                 if result is None:
                     LOG.debug('User "%s" doesn\'t exist in group "%s"' % (username, self._group_dn))
                 elif result:
@@ -90,25 +67,60 @@ class LDAPServer(object):
                 return False
             finally:
                 connect.unbind()
-        except ldap.LDAPError as e:
-            LOG.debug('LDAP Error: %s' % (str(e)))
+
             return False
 
-    def get_user(self, username):
-        pass
+
+    def add(self, connect, attributes):
+        ldif = modlist.addModlist(attributes)
+        connect.add_s(dn,ldif)
 
 
 
-class ReadAttribute(Action):
+    def modify(self, connect, old, new):
+        """
+        old = {'attribute':'value'}
+        new = {'attribute':'value'}
+        """
+        ldif = modlist.modifyModlist(old,new)
+        connect.modify_s(dn,ldif)
+
+
+    def delete(self, connect, delete_dn):
+        try:
+            connect.delete_s(delete_dn)
+            connect.unbind_s()
+        except ldap.LDAPError, e:
+            print e
+
+
+
+class Search(Action):
     """
-    Read information for LDAP.
+    Lookup information from the directory.
+    @base_dn The directory branch distinguished name to the search from.
+    @scope The type of search to perform object, one_leve, subtree
+    @search_filter The criteria to select objects to be returned in the result.
+    @attributes The object's attributes to return.
     """
-    def run(self):
+    def run(self, base_dn, scope, search_filter, attributes):
+        raise NotImplementedError
+
+
+class Add(Action):
+    """
+    Lookup information from the directory.
+    @base_dn The directory branch distinguished name to the search from.
+    @scope The type of search to perform object, one_leve, subtree
+    @search_filter The criteria to select objects to be returned in the result.
+    @attributes The object's attributes to return.
+    """
+    def run(self, base_dn, scope, search_filter, attributes):
         raise NotImplementedError
 
 
 
-class WriteAttribute(Action):
+class Modify(Action):
     """
     Write information to LDAP.
     """
@@ -123,6 +135,4 @@ class Delete(Action):
     """
     def run(self):
         raise NotImplementedError
-
-
 

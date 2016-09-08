@@ -7,14 +7,32 @@ queries to read, write, create and delete entries.
 
 The following actions are supported along with the arguments:
 
-  * `read`
-  * `write`
-  * `create`
+  * `search`
+  * `add`
+  * `modify`
   * `delete`
+
+### search
+
+### add
+
+### modify
+
+### delete
+
+
+## Authentication
+
+The following authentication methods are supported
+
+ * Simple Anonymous Bind
+ * Simple DN Bind
+
+SASL Authentication is not implemmented.
 
 ## Limitations
 
-  * To be advised
+  * No SASL authentication.
 
 ## References
 

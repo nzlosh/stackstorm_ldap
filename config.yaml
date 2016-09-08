@@ -1,13 +1,13 @@
 ---
 profiles:
   "profile_name":
-    host: "ldap.vip.example.com"
+    url: "ldap.vip.example.com"
     port: 389
     use_tls: true
     bind_dn: "cn=bar,dc=example,dc=com"
     bind_pw: "secret"
   "another_profile":
-    host: "active-directory.example.com"
+    url: "active-directory.example.com"
     port: 389
     use_tls: true
     bind_dn: "cn=foo,dc=example,dc=com"
