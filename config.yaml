@@ -1,14 +1,12 @@
 ---
 profiles:
   "profile_name":
-    url: "ldap.vip.example.com"
-    port: 389
+    url: "ldap://ldap.vip.example.com:389"
     use_tls: true
     bind_dn: "cn=bar,dc=example,dc=com"
     bind_pw: "secret"
   "another_profile":
-    url: "active-directory.example.com"
-    port: 389
+    url: "ldap://active-directory.example.com"
     use_tls: true
     bind_dn: "cn=foo,dc=example,dc=com"
     bind_pw: "secret"

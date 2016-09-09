@@ -3,16 +3,8 @@
   runner_type: "run-python"
   description: "Query the LDAP server"
   enabled: true
-  entry_point: "../lib/query.py"
+  entry_point: "query.py"
   parameters:
-    bind_dn_user:
-      type: string
-      description: "Distiguished Name account to bind to LDAP server."
-      required: true
-    bind_dn_password:
-      type: string
-      description: "Password for the Distinguished Name account."
-      required: true
     search_base:
       type: string
       description: "Search base for the directory tree."
