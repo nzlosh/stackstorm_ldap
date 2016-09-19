@@ -1,11 +1,9 @@
-from st2actions.runners.pythonrunner import Action
 from st2common import log as logging
 
+import six
+import json
 import ldap
 import ldap.modlist as modlist
-
-LOG = logging.getLogger(__name__)
-
 
 
 class LDAPServer(object):
@@ -15,10 +13,10 @@ class LDAPServer(object):
     """
     def __init__(self, ldap_uri, use_tls, bind_dn, bind_pw):
         """
-        @ldap_uri -
-        @use_tls -
-        @bind_dn -
-        @bind_pw -
+        @ldap_uri - ldap server url
+        @use_tls - Enable TLS for the connection.
+        @bind_dn - Distinguished Name used to bind to server.
+        @bind_pw - Password for the Distinguished Name account.
         """
         self.ldap_uri = ldap_uri
         self.bind_dn = bind_dn
@@ -32,27 +30,21 @@ class LDAPServer(object):
         else:
             self.use_tls = True
 
+        self.logger = logging.getLogger(__name__)
 
 
     def connect(self):
         """
         Establish a connection to the LDAP server.
         """
-        try:
-            ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
-            self.cxn = ldap.initialize(self.ldap_uri)
-            self.cxn.set_option(ldap.OPT_PROTOCOL_VERSION, 3)
-            if self.use_tls:
-                self.cxn.set_option(ldap.OPT_X_TLS, ldap.OPT_X_TLS_DEMAND)
-                self.cxn.start_tls_s()
-                LOG.debug('using TLS')
-            self.cxn.simple_bind_s(self.bind_dn, self.bind_pw)
-            return True
-        except ldap.LDAPError as e:
-            LOG.debug('LDAP Error: %s' % (str(e)))
-        finally:
-            self.cxn.unbind_s()
-            return False
+        ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
+        self.cxn = ldap.initialize(self.ldap_uri)
+        ldap.set_option(ldap.OPT_PROTOCOL_VERSION, 3)
+        if self.use_tls:
+            lda.set_option(ldap.OPT_X_TLS, ldap.OPT_X_TLS_DEMAND)
+            self.cxn.start_tls_s()
+            self.logger.debug('using TLS')
+        self.cxn.simple_bind_s(self.bind_dn, self.bind_pw)
 
 
 
@@ -60,7 +52,8 @@ class LDAPServer(object):
         """
         Disconnect the existing LDAP session.
         """
-        self.cxn.unbind()
+        if self.cxn:
+            self.cxn.unbind_s()
         self.cxn = None
 
 
@@ -76,19 +69,15 @@ class LDAPServer(object):
                 "subtree": ldap.SCOPE_SUBTREE
             }[scope.lower()]
         except KeyError as e:
-            LOG.debug("'{}' isn't a valid scope, defaulting to 'subtree'.".format(scope))
+            self.logger.debug("'{}' isn't a valid scope, defaulting to 'subtree'.".format(scope))
             self.scope = ldap.SCOPE_SUBTREE
 
-        try:
-            res = self.connect()
-            if res:
-                res = self.cxn.search_s(base_dn, scope, search_filter, attributes)
-                self.disconnect()
-            return res
-        except Exception as e:
-            LOG.warn("Error during search. {}".format(str(e)))
-            self.disconnect()
-            return False
+        self.connect()
+        # Stackstorm use unicode for list elements so we cast them to bytecode to be compatiable with ldap module.
+        if isinstance(attributes, list):
+            stringy_attributes = [str(i) for i in attributes]
+        res = self.cxn.search_s(base_dn, self.scope, search_filter, stringy_attributes)
+        return json.dumps(res)
 
 
 
@@ -103,7 +92,7 @@ class LDAPServer(object):
                 self.disconnect()
             return True
         except Exception as e:
-            LOG.warn("Error adding attributes: {}".format(str(e)))
+            self.logger.warn("Error adding attributes: {}".format(str(e)))
             self.disconnect()
             return False
 
@@ -115,14 +104,13 @@ class LDAPServer(object):
         new = {'attribute':'value'}
         """
         try:
-            res = self.connect()
-            if res:
+            if self.connect():
                 ldif = modlist.modifyModlist(old, new)
                 self.cxn.modify_s(dn, ldif)
                 self.disconnect()
             return res
         except Exception as e:
-            LOG.warn("Error modifying attribute: {}".format(str(e)))
+            self.logger.warn("Error modifying attribute: {}".format(str(e)))
             self.disconnect()
             return False
 
@@ -133,12 +121,11 @@ class LDAPServer(object):
         Delete a distinguished name from the directory.
         """
         try:
-            res = self.connect()
-            if res:
+            if self.connect():
                 self.cxn.delete_s(delete_dn)
                 self.disconnect()
             return res
         except Exception as e:
-            LOG.warn("Error while deleting DN. {}".format(str(e)))
+            self.logger.warn("Error while deleting DN. {}".format(str(e)))
             self.disconnect()
             return False

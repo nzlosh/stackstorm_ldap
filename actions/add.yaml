@@ -1,0 +1,15 @@
+---
+  name: "add"
+  runner_type: "run-python"
+  description: "Add a new entity to the directory tree"
+  enabled: true
+  entry_point: "add.py"
+  parameters:
+    ldap_profile:
+      type: string
+      description: "Used to select the profile configured in the LDAP pack's config.yaml file."
+      required: true
+    attributes:
+      type: object
+      description: "The attributes to be returned in the query result set."
+      required: true

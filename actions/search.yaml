@@ -1,23 +1,28 @@
 ---
-  name: "query"
+  name: "search"
   runner_type: "run-python"
-  description: "Query the LDAP server"
+  description: "Search for entities in the directory tree."
   enabled: true
-  entry_point: "query.py"
+  entry_point: "search.py"
   parameters:
-    search_base:
+    ldap_profile:
       type: string
-      description: "Search base for the directory tree."
+      description: "Used to select the profile configured in the LDAP pack's config.yaml file."
+      required: true
+    base_dn:
+      type: string
+      description: "Search base in the directory tree to perform the search."
       required: true
     scope:
       type: string
-      description: "Limit the scope of the query to 'object', 'one-level', or  'subtree'."
+      description: "Limit the scope of the search to 'object', 'one-level', or 'subtree'."
       required: false
-    filter:
+      default: subtree
+    search_filter:
       type: string
       description: "LDAP filter to use in the query."
-      required: true
+      required: false
     attributes:
       type: array
-      description: "The attributes to be returned in the query result set."
+      description: "The attributes to be returned in the returned result set."
       required: false

@@ -1,1 +1,1 @@
-ldap
+python-ldap
