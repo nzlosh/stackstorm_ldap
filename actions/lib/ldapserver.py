@@ -73,7 +73,8 @@ class LDAPServer(object):
             self.scope = ldap.SCOPE_SUBTREE
 
         self.connect()
-        # Stackstorm use unicode for list elements so we cast them to bytecode to be compatiable with ldap module.
+        # Stackstorm use unicode for list elements so we cast them to
+        # bytecode to be compatiable with ldap module.
         if isinstance(attributes, list):
             stringy_attributes = [str(i) for i in attributes]
         res = self.cxn.search_s(base_dn, self.scope, search_filter, stringy_attributes)
@@ -81,39 +82,38 @@ class LDAPServer(object):
 
 
 
-    def add(self, attributes):
+    def add(self, dn, attributes):
         """
         Add a new set of attributes to the directory.
         """
         try:
-            if self.connect():
-                ldif = modlist.addModlist(attributes)
-                self.cxn.add_s(dn, ldif)
-                self.disconnect()
-            return True
+            self.connect():
+            ldif = modlist.addModlist(attributes)
+            self.cxn.add_s(dn, ldif)
+            self.disconnect()
         except Exception as e:
             self.logger.warn("Error adding attributes: {}".format(str(e)))
             self.disconnect()
             return False
+        return True
 
 
-    def modify(self, old, new):
+    def modify(self, dn, old, new):
         """
         Modify an existing attribute with another.
         old = {'attribute':'value'}
         new = {'attribute':'value'}
         """
         try:
-            if self.connect():
-                ldif = modlist.modifyModlist(old, new)
-                self.cxn.modify_s(dn, ldif)
-                self.disconnect()
-            return res
+            self.connect():
+            ldif = modlist.modifyModlist(old, new)
+            self.cxn.modify_s(dn, ldif)
+            self.disconnect()
         except Exception as e:
             self.logger.warn("Error modifying attribute: {}".format(str(e)))
             self.disconnect()
             return False
-
+        return True
 
 
     def delete(self, delete_dn):
@@ -121,11 +121,11 @@ class LDAPServer(object):
         Delete a distinguished name from the directory.
         """
         try:
-            if self.connect():
-                self.cxn.delete_s(delete_dn)
-                self.disconnect()
-            return res
+            self.connect():
+            self.cxn.delete_s(delete_dn)
+            self.disconnect()
         except Exception as e:
             self.logger.warn("Error while deleting DN. {}".format(str(e)))
             self.disconnect()
             return False
+        return True
