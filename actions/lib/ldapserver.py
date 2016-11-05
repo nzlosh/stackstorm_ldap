@@ -24,7 +24,7 @@ class LDAPServer(object):
 
         self.cxn = None
 
-        if use_tls != "True" or "ldaps" in ldap_uri:
+        if use_tls.lower() != "true" or "ldaps" in ldap_uri:
             self.use_tls = False
             self.tls_valid_cert = False
         else:
