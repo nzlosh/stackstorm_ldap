@@ -3,7 +3,7 @@ from lib.ldapserver import LDAPServer
 
 class Modify(Action):
     """
-    Write information to LDAP.
+    Modify an object in the directory.
     """
     def run(self, ldap_profile, old, new):
         cfg = self.config["profiles"][ldap_profile]

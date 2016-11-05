@@ -9,7 +9,11 @@
       type: string
       description: "Used to select the profile configured in the LDAP pack's config.yaml file."
       required: true
+    distinguished_name:
+      type: string
+      description: "The distinguished name to add to the directory."
+      required: true
     attributes:
       type: object
-      description: "The attributes to be returned in the query result set."
+      description: "The attributes to be added to the DN object."
       required: true

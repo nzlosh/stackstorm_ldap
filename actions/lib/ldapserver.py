@@ -47,7 +47,6 @@ class LDAPServer(object):
         self.cxn.simple_bind_s(self.bind_dn, self.bind_pw)
 
 
-
     def disconnect(self):
         """
         Disconnect the existing LDAP session.
@@ -55,7 +54,6 @@ class LDAPServer(object):
         if self.cxn:
             self.cxn.unbind_s()
         self.cxn = None
-
 
 
     def search(self, base_dn, scope='subtree', search_filter='(objectClass=*)', attributes=None):
@@ -73,7 +71,7 @@ class LDAPServer(object):
             self.scope = ldap.SCOPE_SUBTREE
 
         self.connect()
-        # Stackstorm use unicode for list elements so we cast them to
+        # Stackstorm uses unicode for list elements so we cast them to
         # bytecode to be compatiable with ldap module.
         if isinstance(attributes, list):
             stringy_attributes = [str(i) for i in attributes]
@@ -81,13 +79,12 @@ class LDAPServer(object):
         return json.dumps(res)
 
 
-
     def add(self, dn, attributes):
         """
         Add a new set of attributes to the directory.
         """
         try:
-            self.connect():
+            self.connect()
             ldif = modlist.addModlist(attributes)
             self.cxn.add_s(dn, ldif)
             self.disconnect()
@@ -105,7 +102,7 @@ class LDAPServer(object):
         new = {'attribute':'value'}
         """
         try:
-            self.connect():
+            self.connect()
             ldif = modlist.modifyModlist(old, new)
             self.cxn.modify_s(dn, ldif)
             self.disconnect()
@@ -121,7 +118,7 @@ class LDAPServer(object):
         Delete a distinguished name from the directory.
         """
         try:
-            self.connect():
+            self.connect()
             self.cxn.delete_s(delete_dn)
             self.disconnect()
         except Exception as e:
