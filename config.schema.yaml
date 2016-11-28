@@ -1,0 +1,28 @@
+---
+profiles:
+  example1:
+    url:
+      description: "URL of ldap server."
+      type: "string"
+      secret: false
+      required: true
+    use_tls: true
+      description: "Use TLS when establishing LDAP connection. (defaut=false)"
+      type: "boolean"
+      secret: false
+      reqired: false
+    bind_dn:
+      description: "Distinguished name to use when binding to the LDAP server. (default='')"
+      type: "string"
+      secret: false
+      required: false
+    bind_pw:
+      description: "Distinguished name password."
+      type: "string"
+      secret: true
+      required: false
+avilable_profiles:
+  desciption: "The list of available profiles to be presented in the WebUI's dropdown list"
+  type: "array"
+  secret: false
+  required: true

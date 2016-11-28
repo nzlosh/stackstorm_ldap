@@ -1,0 +1,15 @@
+---
+profiles:
+  "readonly":
+    url: "ldaps://localhost"
+    use_tls: true
+    bind_dn: "user_ro,dc=example,dc=com"
+    bind_pw: "1234abcd"
+  "readwrite":
+    url: "ldaps://localhost"
+    use_tls: true
+    bind_dn: "cn=user_rw,dc=example,dc=com"
+    bind_pw: "abcd1234"
+avilable_profiles:
+  "readonly"
+  "readwrite"
