@@ -24,7 +24,7 @@ class LDAPServer(object):
 
         self.cxn = None
 
-        if use_tls.lower() != "true" or "ldaps" in ldap_uri:
+        if use_tls != True or "ldaps" in ldap_uri:
             self.use_tls = False
             self.tls_valid_cert = False
         else:
@@ -60,19 +60,20 @@ class LDAPServer(object):
         """
         search method queries
         """
-        try:
-            self.scope = {
-                "base": ldap.SCOPE_BASE,
-                "onelevel": ldap.SCOPE_ONELEVEL,
-                "subtree": ldap.SCOPE_SUBTREE
-            }[scope.lower()]
-        except KeyError as e:
+        self.scope = {
+            "base": ldap.SCOPE_BASE,
+            "onelevel": ldap.SCOPE_ONELEVEL,
+            "subtree": ldap.SCOPE_SUBTREE
+        }.get(scope.lower()) or None
+
+        if self.scope is None:
             self.logger.debug("'{}' isn't a valid scope, defaulting to 'subtree'.".format(scope))
             self.scope = ldap.SCOPE_SUBTREE
 
         self.connect()
         # Stackstorm uses unicode for list elements so we cast them to
         # bytecode to be compatiable with ldap module.
+        stringy_attributes = None
         if isinstance(attributes, list):
             stringy_attributes = [str(i) for i in attributes]
         res = self.cxn.search_s(base_dn, self.scope, search_filter, stringy_attributes)

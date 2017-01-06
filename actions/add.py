@@ -1,3 +1,4 @@
+from st2actions.runners.pythonrunner import Action
 from lib.ldapserver import LDAPServer
 
 
@@ -13,8 +14,9 @@ class Add(Action):
     (mod_op,mod_type,mod_vals)
     mod_op indicates the operation (one of ldap.MOD_ADD, ldap.MOD_DELETE, or ldap.MOD_REPLACE)
     mod_type is a string indicating the attribute type name
-    mod_vals is either a string value or a list of string values to add, delete or replace respectively. For the delete operation, mod_vals may be None indicating that all attributes are to be deleted.
-
+    mod_vals is either a string value or a list of string values to add, delete or replace
+    respectively. For the delete operation, mod_vals may be None indicating that all attributes
+    are to be deleted.
     """
     def run(self, ldap_profile, dn, attributes):
         cfg = self.config["profiles"][ldap_profile]
@@ -24,5 +26,3 @@ class Add(Action):
             return res
 
         return False
-
-

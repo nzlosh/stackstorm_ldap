@@ -1,28 +1,40 @@
 ---
-profiles:
-  example1:
-    url:
-      description: "URL of ldap server."
-      type: "string"
-      secret: false
+  profiles:
+    description: "A list of available ldap servers"
+    type: "array"
+    items:
       required: true
-    use_tls: true
-      description: "Use TLS when establishing LDAP connection. (defaut=false)"
-      type: "boolean"
-      secret: false
-      reqired: false
-    bind_dn:
-      description: "Distinguished name to use when binding to the LDAP server. (default='')"
+      type: "object"
+      properties:
+        name:
+          description: "Profile name"
+          type: "string"
+          secret: false
+          required: true
+        url:
+          description: "LDAP URL."
+          type: "string"
+          secret: false
+          required: true
+        use_tls:
+          description: "Enable TLS when connecting to ldap server."
+          type: "boolean"
+          secret: false
+          required: true
+        bind_dn:
+          description: "Bind using Distinguished Name."
+          type: "string"
+          secret: false
+          required: true
+        bind_pw:
+          description: "Distinguished Name password."
+          type: "string"
+          secret: false
+          required: true
+  available_profiles:
+    desciption: "The list of available profiles to be presented in the WebUI's dropdown list"
+    type: "array"
+    items:
       type: "string"
-      secret: false
-      required: false
-    bind_pw:
-      description: "Distinguished name password."
-      type: "string"
-      secret: true
-      required: false
-avilable_profiles:
-  desciption: "The list of available profiles to be presented in the WebUI's dropdown list"
-  type: "array"
-  secret: false
-  required: true
+    secret: false
+    required: true
