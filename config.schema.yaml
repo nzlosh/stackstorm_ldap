@@ -29,10 +29,10 @@
         bind_pw:
           description: "Distinguished Name password."
           type: "string"
-          secret: false
+          secret: true
           required: true
   available_profiles:
-    desciption: "The list of available profiles to be presented in the WebUI's dropdown list"
+    description: "The list of available profiles to be presented in the WebUI's dropdown list"
     type: "array"
     items:
       type: "string"

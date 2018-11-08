@@ -1,6 +1,6 @@
 ---
   name: "modify"
-  runner_type: "run-python"
+  runner_type: "python-script"
   description: "Modify an existing entity in the directory tree."
   enabled: true
   entry_point: "modify.py"

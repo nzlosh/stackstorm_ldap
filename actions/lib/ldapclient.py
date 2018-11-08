@@ -6,9 +6,9 @@ import ldap
 import ldap.modlist as modlist
 
 
-class LDAPServer(object):
+class LDAPClient(object):
     """
-    This object provides common functionality to authenticate and interact
+    LDAPClient object provides common functionality to authenticate and interact
     with an LDAP server.
     """
     def __init__(self, ldap_uri, use_tls, bind_dn, bind_pw):
@@ -71,8 +71,7 @@ class LDAPServer(object):
             self.scope = ldap.SCOPE_SUBTREE
 
         self.connect()
-        # Stackstorm uses unicode for list elements so we cast them to
-        # bytecode to be compatiable with ldap module.
+        # Cast Stackstorm unicode list elements to bytecode to be compatiable with ldap module.
         stringy_attributes = None
         if isinstance(attributes, list):
             stringy_attributes = [str(i) for i in attributes]
@@ -83,9 +82,19 @@ class LDAPServer(object):
     def add(self, dn, attributes):
         """
         Add a new set of attributes to the directory.
+
+        Each element in the list modlist should be a tuple of the form
+        (mod_op,mod_type,mod_vals)
+        mod_op indicates the operation (one of ldap.MOD_ADD, ldap.MOD_DELETE, or ldap.MOD_REPLACE)
+        mod_type is a string indicating the attribute type name
+        mod_vals is either a string value or a list of string values to add, delete or replace
+        respectively. For the delete operation, mod_vals may be None indicating that all attributes
+        are to be deleted.
         """
         try:
             self.connect()
+            for i, v in enumerate(attributes):
+                attributes[i] = self._convert_mod_string_to_ldap(attributes[i])
             ldif = modlist.addModlist(attributes)
             self.cxn.add_s(dn, ldif)
             self.disconnect()
@@ -96,34 +105,54 @@ class LDAPServer(object):
         return True
 
 
+    def _convert_mod_string_to_ldap(self, attribute):
+        """
+        Convert the text representation of the ldap modify operation to the corresponding
+        LDAP module flag value.
+        """
+        conv = {
+            "add": ldap.MOD_ADD,
+            "delete": ldap.MOD_DELETE,
+            "replace": ldap.MOD_REPLACE
+        }.get(attribute[0].lower())
+
+        if not conv:
+            self.logger.warn("Invalid attribute operation.")
+            raise TypeError
+
+        return (conv, attribute[1], attribute[2])
+
+
     def modify(self, dn, old, new):
         """
         Modify an existing attribute with another.
         old = {'attribute':'value'}
         new = {'attribute':'value'}
         """
+        ret_val = True
         try:
             self.connect()
             ldif = modlist.modifyModlist(old, new)
             self.cxn.modify_s(dn, ldif)
-            self.disconnect()
         except Exception as e:
             self.logger.warn("Error modifying attribute: {}".format(str(e)))
+            ret_val = False
+        finally:
             self.disconnect()
-            return False
-        return True
+        return ret_val
 
 
     def delete(self, delete_dn):
         """
         Delete a distinguished name from the directory.
         """
+        ret_val = True
         try:
             self.connect()
             self.cxn.delete_s(delete_dn)
-            self.disconnect()
         except Exception as e:
             self.logger.warn("Error while deleting DN. {}".format(str(e)))
+            ret_val = False
+        finally:
             self.disconnect()
-            return False
-        return True
+        return ret_val

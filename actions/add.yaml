@@ -1,6 +1,6 @@
 ---
   name: "add"
-  runner_type: "run-python"
+  runner_type: "python-script"
   description: "Add a new entity to the directory tree"
   enabled: true
   entry_point: "add.py"

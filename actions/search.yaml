@@ -1,6 +1,6 @@
 ---
   name: "search"
-  runner_type: "run-python"
+  runner_type: "python-script"
   description: "Search for entities in the directory tree."
   enabled: true
   entry_point: "search.py"
