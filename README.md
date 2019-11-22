@@ -1,46 +1,65 @@
-# LDAP Integration Pack
+# ldap integration pack v0.1.0
 
-This pack allows integration with LDAP server implementations allowing queries to read, write, create and delete entries.
+> Interact with LDAP servers
+Carlos <nzlosh@yahoo.com>
 
-## Actions
-
-The following actions are supported along with the arguments:
-
-  * `search`
-  * `add`
-  * `modify`
-  * `delete`
-
-### search
-
-Search for entries that match the provided filter.  The search will be applied based on the scope provided and return the attributes specified.
-
-1. **ldap_profile**: Used to select the profile configured in the LDAP pack's config.yaml file.
-2. **base_dn**: Search base in the directory tree to perform the search.
-3. **scope**: Limit the scope of the search to `object`, `one-level`, or `subtree`.
-4. **search_filter**: LDAP filter to use in the query.
-5. **attributes**: The attributes to be returned in the returned result set.
-
-### add
- To be implemented.
-
-### modify
- To be implemented.
-
-### delete
- To be implemented.
 
 ## Configuration
 
-The pack must be configured with an LDAP profile.  The profile is used to define the server uri and an account to use to bind to the directory.
+The following options are required to be configured for the pack to work correctly.
 
-### Profile parameters
- 1. **url** (_string_): The LDAP server url. `ldap://<hostname>:<port>`
- 2. **use_tls** (_boolean_): Enable TLS on servers that support it.  _It's an error to enable TLS when using `ldaps` in the ldap uri._
- 3. **bind_dn** (_string_): The distinguished name to bind to the LDAP server.
- 4. **bind_pw** (_string_): Password for the distinguished name.
+| Option | Type | Required | Secret | Description |
+|---|---|---|---|---|
+| `profiles` | array |  |  | A list of available ldap servers |
+| `available_profiles` | array | True | False | The list of available profiles to be presented in the WebUI's dropdown list |
 
-See the file `config.yaml` which has two examples of the syntax.
+
+## Actions
+
+
+The pack provides the following actions:
+
+### add
+_Add a new entity to the directory tree_
+
+| Parameter | Type | Required | Secret | Description |
+|---|---|---|---|---|
+| `ldap_profile` | string | True | default | _Used to select the profile configured in the LDAP pack's config.yaml file._ |
+| `distinguished_name` | string | True | default | _The distinguished name to add to the directory._ |
+| `attributes` | object | True | default | _The attributes to be added to the DN object._ |
+### delete
+_Delete a DN from the directory tree_
+
+| Parameter | Type | Required | Secret | Description |
+|---|---|---|---|---|
+| `ldap_profile` | string | True | default | _Used to select the profile configured in the LDAP pack's config.yaml file._ |
+| `delete_dn` | string | True | default | _The DN to be deleted._ |
+### modify
+_Modify an existing entity in the directory tree._
+
+| Parameter | Type | Required | Secret | Description |
+|---|---|---|---|---|
+| `ldap_profile` | string | True | default | _Used to select the profile configured in the LDAP pack's config.yaml file._ |
+| `modify_dn` | string | True | default | _The DN to be modified._ |
+| `old` | object | True | default | _The old attribute to be modified for the given 'modify_dn'._ |
+| `new` | object | True | default | _The new attribute to be modified for the given 'modify_dn'._ |
+### search
+_Search for entities in the directory tree._
+
+| Parameter | Type | Required | Secret | Description |
+|---|---|---|---|---|
+| `ldap_profile` | string | True | default | _Used to select the profile configured in the LDAP pack's config.yaml file._ |
+| `base_dn` | string | True | default | _Search base in the directory tree to perform the search._ |
+| `scope` | string | False | default | _Limit the scope of the search to 'object', 'one-level', or 'subtree'._ |
+| `search_filter` | string | False | default | _LDAP filter to use in the query._ |
+| `attributes` | array | False | default | _The attributes to be returned in the returned result set._ |
+
+
+
+## Sensors
+
+There are no sensors available for this pack.
+
 
 ## Authentication
 
@@ -59,3 +78,5 @@ The following authentication methods are supported
 
 ## Thanks to
 https://icons8.com for the use of their ![icon](icon.png)
+
+<sub>Documentation generated using [pack2md](https://github.com/nzlosh/pack2md)</sub>
